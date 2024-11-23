@@ -1,11 +1,27 @@
 package net.kush.dairyApp.entity;
 
+import org.bson.types.ObjectId;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.time.LocalDateTime;
+
 public class DairyEntry {
-    public long getId() {
+
+    @Id
+    private ObjectId id;
+
+    private String title;
+
+    private String content;
+
+    private LocalDateTime date;
+
+    public ObjectId getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(ObjectId id) {
         this.id = id;
     }
 
@@ -25,9 +41,15 @@ public class DairyEntry {
         this.content = content;
     }
 
-    private long id;
+    public LocalDateTime getDate() {
+        return date;
+    }
 
-    private String title;
+    public void setDate(LocalDateTime date) {
+        this.date = date;
+    }
 
-    private String content;
+
+
+
 }
