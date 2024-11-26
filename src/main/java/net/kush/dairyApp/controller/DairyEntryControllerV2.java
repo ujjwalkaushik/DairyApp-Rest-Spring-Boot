@@ -1,7 +1,9 @@
 package net.kush.dairyApp.controller;
 
 import net.kush.dairyApp.entity.DairyEntry;
+import net.kush.dairyApp.entity.User;
 import net.kush.dairyApp.service.DairyEntryService;
+import net.kush.dairyApp.service.UserService;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,20 +21,24 @@ public class DairyEntryControllerV2 {
     @Autowired
     private DairyEntryService dairyEntryService;
 
-    @GetMapping
-    public ResponseEntity<?> getAll() {
-        List<DairyEntry> allEntry = dairyEntryService.getAll();
+    @Autowired
+    private UserService userService;
+
+
+    @GetMapping("{userName}")
+    public ResponseEntity<?> getAllDairyByUser(@PathVariable String userName) {
+        User byUserName = userService.findByUserName(userName);
+        List<DairyEntry> allEntry = byUserName.getDairyEntries();
         if(allEntry != null && !allEntry.isEmpty()) {
             return new ResponseEntity<>(allEntry, HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @PostMapping
-    public ResponseEntity<DairyEntry> createEntry(@RequestBody DairyEntry entry) {
+    @PostMapping("{userName}")
+    public ResponseEntity<DairyEntry> createEntry(@RequestBody DairyEntry entry, @PathVariable String userName) {
         try {
-            entry.setDate(LocalDateTime.now());
-            dairyEntryService.saveEntry(entry);
+            dairyEntryService.saveEntry(entry, userName);
             return new ResponseEntity<>(entry, HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -45,19 +51,22 @@ public class DairyEntryControllerV2 {
         return dairyEntry.map(entry -> new ResponseEntity<>(entry, HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    @DeleteMapping("id/{entryId}")
-    public ResponseEntity<?> deleteDairyEntryById(@PathVariable ObjectId entryId) {
-        dairyEntryService.deleteById(entryId);
+    @DeleteMapping("id/{userName}/{entryId}")
+    public ResponseEntity<?> deleteDairyEntryById(@PathVariable ObjectId entryId, @PathVariable String userName) {
+        dairyEntryService.deleteById(entryId, userName);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @PutMapping("id/{entryId}")
-    public  ResponseEntity<?> updateDairyById(@PathVariable ObjectId entryId, @RequestBody DairyEntry entry) {
+    @PutMapping("id/{userName}/{entryId}")
+    public  ResponseEntity<?> updateDairyById(
+            @PathVariable ObjectId entryId,
+            @PathVariable String userName,
+            @RequestBody DairyEntry entry) {
         DairyEntry oldDairyEntry = dairyEntryService.findDairyById(entryId).orElse(null);
         if(oldDairyEntry != null) {
             oldDairyEntry.setTitle(entry.getTitle() != null && !entry.getTitle().equals("") ? entry.getTitle() : oldDairyEntry.getTitle());
             oldDairyEntry.setContent(entry.getContent() != null && !entry.getContent().equals("") ? entry.getContent() : oldDairyEntry.getContent());
-            dairyEntryService.saveEntry(oldDairyEntry);
+            dairyEntryService.saveEntry(oldDairyEntry, userName);
             return new ResponseEntity<>(oldDairyEntry, HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
