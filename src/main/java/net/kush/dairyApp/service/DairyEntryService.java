@@ -7,6 +7,7 @@ import net.kush.dairyApp.repository.DairyEntryRepository;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,12 +22,19 @@ public class DairyEntryService {
     @Autowired
     UserService userService;
 
+    @Transactional
     public void  saveEntry(DairyEntry dairyEntry, String userName) {
-        User user = userService.findByUserName(userName);
-        dairyEntry.setDate(LocalDateTime.now());
-        DairyEntry savedEntry = dairyEntryRepository.save(dairyEntry);
-        user.getDairyEntries().add(savedEntry);
-        userService.saveEntry(user);
+        try {
+            User user = userService.findByUserName(userName);
+            dairyEntry.setDate(LocalDateTime.now());
+            DairyEntry savedEntry = dairyEntryRepository.save(dairyEntry);
+            user.getDairyEntries().add(savedEntry);
+            userService.saveEntry(user);
+        } catch (Exception e) {
+            System.out.println(e);
+            throw new RuntimeException(e);
+        }
+
     }
 
     public void  saveEntry(DairyEntry dairyEntry) {
