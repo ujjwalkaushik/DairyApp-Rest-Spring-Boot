@@ -28,4 +28,6 @@ public class User {
 
     @DBRef
     private List<DairyEntry> dairyEntries = new ArrayList<>();
+
+    private List<String> roles;
 }
