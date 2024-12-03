@@ -23,7 +23,7 @@ public class SpringSecurity extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
-                .antMatchers("/dairy/**").authenticated()
+                .antMatchers("/dairy/**", "/user/**").authenticated()
                 .anyRequest().permitAll()
                 .and()
                 .httpBasic();
