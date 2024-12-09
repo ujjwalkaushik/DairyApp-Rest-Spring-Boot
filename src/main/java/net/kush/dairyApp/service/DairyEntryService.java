@@ -29,19 +29,16 @@ public class DairyEntryService {
             dairyEntry.setDate(LocalDateTime.now());
             DairyEntry savedEntry = dairyEntryRepository.save(dairyEntry);
             user.getDairyEntries().add(savedEntry);
-            userService.saveEntry(user);
+            userService.saveUser(user);
         } catch (Exception e) {
             System.out.println(e);
             throw new RuntimeException(e);
         }
-
     }
 
     public void  saveEntry(DairyEntry dairyEntry) {
         dairyEntryRepository.save(dairyEntry);
     }
-
-
 
     public List<DairyEntry> getAll() {
         return dairyEntryRepository.findAll();
@@ -51,10 +48,20 @@ public class DairyEntryService {
         return dairyEntryRepository.findById(id);
     }
 
-    public void deleteById(ObjectId id, String userName) {
-        User user = userService.findByUserName(userName);
-        user.getDairyEntries().removeIf(entry ->  entry.getId().equals(id));
-        userService.saveEntry(user);
-        dairyEntryRepository.deleteById(id);
+    @Transactional
+    public boolean deleteById(ObjectId id, String userName) {
+        boolean removed = false;
+        try {
+            User user = userService.findByUserName(userName);
+            removed = user.getDairyEntries().removeIf(entry -> entry.getId().equals(id));
+            if(removed) {
+                userService.saveUser(user);
+                dairyEntryRepository.deleteById(id);
+            }
+        } catch (Exception e) {
+            System.out.println(e);
+            throw new RuntimeException("An error occurred while deleting the entry",e);
+        }
+        return removed;
     }
 }
